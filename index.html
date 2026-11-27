@@ -351,7 +351,6 @@
       <label class="rv" for="budget">Gift budget</label>
       <div class="line rv peso"><span>₱</span><input type="number" id="budget" inputmode="numeric" min="1" placeholder="500"></div>
       <button class="btn rv" id="btnCreate"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create my group</button>
-      <div class="recent rv" id="recent"></div>
     </section>
 
     <!-- HOST: created -->
@@ -466,7 +465,8 @@
       <div class="reveal"><p class="pre rv">Your monito / monita is</p><div class="who" id="who"></div></div>
       <p class="lead rv">Here are their three wishes. Keep it a secret.</p>
       <ul class="wl" id="wl"></ul>
-      <button class="btn rv" id="btnDl"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download wish list</button>
+      <button class="btn rv" id="btnDl"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download animated card</button>
+      <p class="link rv" style="margin-top:12px;font-size:15px">or save it as a <a id="btnHtml">live card (.html)</a></p>
       <button class="btn ghost rv" id="btnClose"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg>Close my card</button>
       <details class="mine rv"><summary><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>My sealed wishes</summary><ol class="myW"></ol></details>
     </section>
@@ -489,7 +489,7 @@
    API_URL empty  → standalone test mode (saves in this browser)
    API_URL set    → live mode (Google Apps Script web app)
    ========================================================= */
-const API_URL = 'https://script.google.com/macros/s/AKfycbyX57miOj-ZPqmmWjxZbQOLycZiHLKcxx9nnp2BdyjVW0a_3c4Qyr5WEol8Z_w_MYuPFA/exec';   // ← paste your Apps Script /exec link between the quotes
+const API_URL = 'https://script.google.com/macros/s/AKfycbyX57miOj-ZPqmmWjxZbQOLycZiHLKcxx9nnp2BdyjVW0a_3c4Qyr5WEol8Z_w_MYuPFA/exec';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const qs=new URLSearchParams(location.search);
@@ -689,11 +689,11 @@ function drawTree(x,o){
   for(let s=0;s<4;s++){ const off=s*.07, wid=(s===0?1.7:.6)*k; let p0=pos(.02,off); const N=Math.floor(420*grow);
     for(let i=1;i<=N;i++){ const t=.02+i/420*.98, p=pos(t,off), a=(.10+.55*p.front)*(s===0?1:.5)*(.35+.65*t);
       x.strokeStyle=`rgba(246,224,176,${a})`; x.lineWidth=wid*(.4+t*1.6); x.beginPath(); x.moveTo(p0.x,p0.y); x.lineTo(p.x,p.y); x.stroke(); p0=p; } }
-  SPARKS.forEach(sp=>{ if(sp.t>grow) return; const p=pos(sp.t), r=R*Math.pow(sp.t,1.15), tw=.45+.55*Math.sin(time*sp.tw+sp.ph), a=Math.max(0,(.15+.75*p.front)*tw);
+  SPARKS.forEach(sp=>{ if(sp.t>grow) return; const p=pos(sp.t), r=R*Math.pow(sp.t,1.15), tw=.45+.55*Math.sin(time*(o.loop?Math.max(1,Math.round(sp.tw)):sp.tw)+sp.ph), a=Math.max(0,(.15+.75*p.front)*tw);
     x.fillStyle=`rgba(255,${214+Math.floor(sp.s*16)},${150+Math.floor(sp.s*28)},${a})`; x.beginPath(); x.arc(p.x+sp.j*r*1.4,p.y+sp.dy*h,sp.s*k*(.6+sp.t*.7),0,7); x.fill(); });
   for(let i=0;i<24;i++){ const t=((i*.137)%1); if(t>grow) continue; const p=pos(t,1.3), r=R*Math.pow(t,1.15), bx=p.x+Math.sin(i*7.1)*r*.6, by=p.y+Math.cos(i*3.3)*24*k, br=(2+(i%5))*k*1.4;
     const g=x.createRadialGradient(bx,by,0,bx,by,br); g.addColorStop(0,'rgba(255,212,150,.42)'); g.addColorStop(1,'rgba(255,212,150,0)'); x.fillStyle=g; x.beginPath(); x.arc(bx,by,br,0,7); x.fill(); }
-  const sx=cx, sy=top-6*k, S=34*k*(1+.08*Math.sin(time*2.2))*Math.min(1,grow*1.4);
+  const sx=cx, sy=top-6*k, S=34*k*(1+.08*Math.sin(time*(o.loop?2:2.2)))*Math.min(1,grow*1.4);
   const g=x.createRadialGradient(sx,sy,0,sx,sy,S*1.7); g.addColorStop(0,'rgba(255,242,215,.9)'); g.addColorStop(.25,'rgba(255,214,155,.32)'); g.addColorStop(1,'rgba(255,205,145,0)');
   x.fillStyle=g; x.beginPath(); x.arc(sx,sy,S*1.7,0,7); x.fill(); x.fillStyle='rgba(255,248,230,.96)'; ray(S,2.1*k,time*.15); ray(S*.55,1.5*k,Math.PI/4+time*.15); x.restore();
   function ray(L,w,rot){ x.save(); x.translate(sx,sy); x.rotate(rot); for(let q=0;q<4;q++){ x.rotate(Math.PI/2); x.beginPath(); x.moveTo(0,-L); x.lineTo(w,0); x.lineTo(-w,0); x.closePath(); x.fill(); } x.restore(); }
@@ -866,7 +866,11 @@ function showResult(){
   $('#wl').innerHTML=state.drewWishes.map((w,i)=>`<li class="rv"><span class="roman">${ROMAN[i]}</span>${esc(w)}</li>`).join('');
   show('s-result');
 }
-$('#btnDl').onclick=async()=>{ await downloadCard(state.drew,state.drewWishes); setTimeout(closeCard,1600); };
+$('#btnDl').onclick=async e=>{ const B=e.currentTarget; if(B.disabled) return; B._h=B.innerHTML; B.innerHTML='<span class="spin"></span>&nbsp; Making your animated card…'; B.disabled=true;
+  let ok=false; try{ ok=await downloadCard(state.drew,state.drewWishes); }catch(err){ toast('Sorry — couldn’t make the animation on this device'); }
+  B.innerHTML=B._h; B.disabled=false; if(ok) setTimeout(closeCard,1800); };
+$('#btnHtml').onclick=async()=>{ const blob=new Blob([makeLiveHTML(state.drew,state.drewWishes,state.group,state.budget)],{type:'text/html'});
+  if(await saveBlob(blob,`Wishlist-${state.drew.replace(/\s+/g,'')}.html`)) toast('Live card saved — open it in any browser'); };
 $('#btnClose').onclick=closeCard;
 
 /* =========================================================
@@ -874,12 +878,12 @@ $('#btnClose').onclick=closeCard;
    ========================================================= */
 function myGroups(){ try{ return JSON.parse(localStorage.getItem('mm_hosted'))||[] }catch(e){ return [] } }
 function links(code,key){ return { join:`${BASE}?g=${code}`, host:`${BASE}?g=${code}&host=${key}` }; }
-function renderRecent(){ const l=myGroups(); $('#recent').innerHTML=l.length?`<div class="lbl">Your groups on this device</div>`+l.slice(-5).reverse().map(x=>`<a href="${esc(links(x.code,x.key).host)}">${esc(x.name||x.code)} <span>${peso(x.budget)} · manage →</span></a>`).join(''):''; }
+function renderRecent(){ try{ localStorage.removeItem('mm_hosted'); }catch(e){} return; const l=myGroups(); $('#recent').innerHTML=l.length?`<div class="lbl">Your groups on this device</div>`+l.slice(-5).reverse().map(x=>`<a href="${esc(links(x.code,x.key).host)}">${esc(x.name||x.code)} <span>${peso(x.budget)} · manage →</span></a>`).join(''):''; }
 $('#btnCreate').onclick=async e=>{ const B=e.currentTarget, n=$('#gname').value.trim(), b=$('#budget').value;
   if(n.length<2) return toast('Please type a group name');
   if(!(Number(b)>0)) return toast('Please enter a gift budget, like 500');
   busy(B,true); const r=await api('createGroup',{name:n,budget:b}); busy(B,false); if(!r.ok) return toast(r.error);
-  const L=links(r.code,r.hostKey), l=myGroups(); l.push({code:r.code,key:r.hostKey,budget:r.budget,name:r.name}); localStorage.setItem('mm_hosted',JSON.stringify(l));
+  const L=links(r.code,r.hostKey); localStorage.removeItem('mm_hosted');
   $('#joinUrl').textContent=L.join; $('#hostUrl').textContent=L.host; $('#openJoin').href=L.join; $('#openHost').href=L.host;
   const br=B.getBoundingClientRect(); fx.burst(br.left+br.width/2,br.top,80); show('s-created'); };
 
@@ -915,33 +919,132 @@ function showError(msg){ if(msg) $('#errText').textContent=msg; book.hidden=true
 $('#toHome').href=BASE;
 
 /* =========================================================
-   DOWNLOADABLE WISH CARD (PNG)
+   DOWNLOADABLE LIVING WISH CARD — animated GIF + live HTML
    ========================================================= */
-function makeCard(name,wishes){
-  const W=1080,H=1512,c=document.createElement('canvas'); c.width=W;c.height=H; const x=c.getContext('2d');
-  const bg=x.createLinearGradient(0,0,W*.4,H); bg.addColorStop(0,'#6B1526'); bg.addColorStop(.52,'#5B1121'); bg.addColorStop(1,'#4A0D1A'); x.fillStyle=bg; x.fillRect(0,0,W,H);
-  const hl=x.createRadialGradient(W*.22,H*.08,0,W*.22,H*.08,W*1.1); hl.addColorStop(0,'rgba(255,226,196,.10)'); hl.addColorStop(1,'rgba(255,226,196,0)'); x.fillStyle=hl; x.fillRect(0,0,W,H);
-  const vg=x.createRadialGradient(W/2,H/2,W*.45,W/2,H/2,W*1.05); vg.addColorStop(0,'rgba(20,2,6,0)'); vg.addColorStop(1,'rgba(20,2,6,.42)'); x.fillStyle=vg; x.fillRect(0,0,W,H);
-  const img=x.getImageData(0,0,W,H); for(let i=0;i<img.data.length;i+=4){ const n=(Math.random()-.5)*9; img.data[i]+=n; img.data[i+1]+=n; img.data[i+2]+=n; } x.putImageData(img,0,0);
-  x.strokeStyle='rgba(214,174,104,.6)'; x.lineWidth=2; x.strokeRect(36,36,W-72,H-72);
-  drawTree(x,{cx:W*.25,top:H*.14,h:H*.72,R:W*.2,phase:1.1,time:2,k:2.2});
-  x.textAlign='right'; const R=W-100;
-  x.fillStyle='#D6AE68'; x.font='400 28px Cardo, serif'; spaced('A WISH LIST FOR',R,190,6);
-  x.fillStyle='#F7ECDD'; x.font=`400 ${name.length>8?88:118}px Cardo, serif`; spaced(name.toUpperCase(),R,330,6);
-  x.fillStyle='rgba(247,236,221,.85)'; x.font='italic 400 38px Cardo, serif'; x.fillText(state.group?state.group+' · Christmas':'Three wishes for Christmas',R,404);
-  wishes.forEach((w,i)=>{ const y=560+i*190; x.fillStyle='#F3DDAA'; x.font='italic 400 44px Cardo, serif'; x.fillText(ROMAN[i],R,y);
-    x.fillStyle='#F7ECDD'; x.font='400 46px Cardo, serif'; wrap(w,R-80,y,540,54);
+function cardStatic(W,H,name,wishes,group,budget){
+  const c=document.createElement('canvas'); c.width=W; c.height=H; let x=c.getContext('2d'); x.scale(W/1080,H/1512);
+  const t=document.createElement('canvas'); t.width=W; t.height=H;
+  const RN=['i','ii','iii'], money='₱'+Number(budget||0).toLocaleString('en-PH'), WW=1080, HH=1512;
+  const bg=x.createLinearGradient(0,0,WW*.4,HH); bg.addColorStop(0,'#6B1526'); bg.addColorStop(.52,'#5B1121'); bg.addColorStop(1,'#4A0D1A'); x.fillStyle=bg; x.fillRect(0,0,WW,HH);
+  const hl=x.createRadialGradient(WW*.22,HH*.08,0,WW*.22,HH*.08,WW*1.1); hl.addColorStop(0,'rgba(255,226,196,.10)'); hl.addColorStop(1,'rgba(255,226,196,0)'); x.fillStyle=hl; x.fillRect(0,0,WW,HH);
+  const vg=x.createRadialGradient(WW/2,HH/2,WW*.45,WW/2,HH/2,WW*1.05); vg.addColorStop(0,'rgba(20,2,6,0)'); vg.addColorStop(1,'rgba(20,2,6,.42)'); x.fillStyle=vg; x.fillRect(0,0,WW,HH);
+  x.strokeStyle='rgba(214,174,104,.6)'; x.lineWidth=2; x.strokeRect(36,36,WW-72,HH-72);
+  x=t.getContext('2d'); x.scale(W/1080,H/1512);
+  x.textAlign='right'; const R=WW-100;
+  x.fillStyle='#D6AE68'; x.font='400 28px Cardo, Georgia, serif'; spaced('A WISH LIST FOR',R,190,6);
+  x.fillStyle='#F7ECDD'; x.font=`400 ${name.length>8?88:118}px Cardo, Georgia, serif`; spaced(name.toUpperCase(),R,330,6);
+  x.fillStyle='rgba(247,236,221,.85)'; x.font='italic 400 38px Cardo, Georgia, serif'; x.fillText(group?group+' · Christmas':'Three wishes for Christmas',R,404);
+  wishes.forEach((w,i)=>{ const y=560+i*190; x.fillStyle='#F3DDAA'; x.font='italic 400 44px Cardo, Georgia, serif'; x.fillText(RN[i],R,y);
+    x.fillStyle='#F7ECDD'; x.font='400 46px Cardo, Georgia, serif'; wrap(w,R-80,y,620,54);
     x.strokeStyle='rgba(214,174,104,.3)'; x.lineWidth=1.5; x.beginPath(); x.moveTo(R-620,y+70); x.lineTo(R,y+70); x.stroke(); });
-  x.fillStyle='#F7ECDD'; x.font='700 30px Cardo, serif'; spaced('GIFT BUDGET · '+peso(state.budget||0),R,1200,5);
-  x.fillStyle='#D6AE68'; x.font='400 28px Cardo, serif'; spaced('KEEP IT A SECRET · MERRY CHRISTMAS',R,1252,4);
-  return c;
+  x.fillStyle='#F7ECDD'; x.font='700 30px Cardo, Georgia, serif'; spaced('GIFT BUDGET · '+money,R,1200,5);
+  x.fillStyle='#D6AE68'; x.font='400 28px Cardo, Georgia, serif'; spaced('KEEP IT A SECRET · MERRY CHRISTMAS',R,1252,4);
+  return {bg:c,text:t};
   function spaced(t,right,y,s){ const w=[...t].reduce((a,ch)=>a+x.measureText(ch).width+s,-s); let px=right-w; x.textAlign='left'; [...t].forEach(ch=>{x.fillText(ch,px,y);px+=x.measureText(ch).width+s}); x.textAlign='right'; }
   function wrap(t,right,y,maxW,lh){ const ws=t.split(' '); let line='',lines=[]; ws.forEach(w=>{const tt=line?line+' '+w:w; if(x.measureText(tt).width>maxW&&line){lines.push(line);line=w}else line=tt}); lines.push(line); lines=lines.slice(0,2);
+    if(lines.length===2&&lines[1].length<10){ const a=lines[0].split(' '); if(a.length>1){ lines[1]=a.pop()+' '+lines[1]; lines[0]=a.join(' '); } }
     const off=(lines.length-1)*lh/2; lines.forEach((l,k)=>x.fillText(l,right,y-off+k*lh)); }
 }
-async function downloadCard(name,wishes){ try{ await document.fonts.ready; }catch(e){}
-  const a=document.createElement('a'); a.download=`Wishlist-${name.replace(/\s+/g,'')}.png`; a.href=makeCard(name,wishes).toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
-  toast('Wish list saved to your device'); }
+function makeSnow(n){ return Array.from({length:n},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.7+.5,sp:1+Math.floor(Math.random()*2),a:.2+Math.random()*.4,ph:Math.random()*6.28})); }
+function drawFrame(x,base,W,H,T,snow){
+  x.globalCompositeOperation='source-over'; x.drawImage(base.bg,0,0);
+  drawTree(x,{cx:W*.24,top:H*.14,h:H*.62,R:W*.18,phase:T,time:T,k:2.2*W/1080,loop:true});
+  for(const s of snow){ const y=((s.y+T/(Math.PI*2)*s.sp)%1)*H, xx=(s.x+Math.sin(T+s.ph)*.012)*W, r=s.r*W/480;
+    const g=x.createRadialGradient(xx,y,0,xx,y,r*2.2); g.addColorStop(0,`rgba(255,250,242,${s.a})`); g.addColorStop(1,'rgba(255,250,242,0)'); x.fillStyle=g; x.beginPath(); x.arc(xx,y,r*2.2,0,7); x.fill(); }
+  x.drawImage(base.text,0,0);
+}
+
+/* ---- tiny GIF encoder (median-cut palette + LZW) ---- */
+async function makeGif(name,wishes,group,budget){
+  try{ await document.fonts.ready; }catch(e){}
+  const W=480,H=672,N=36,DELAY=7;
+  const base=cardStatic(W,H,name,wishes,group,budget), snow=makeSnow(44);
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d',{willReadFrequently:true});
+  const frames=[];
+  for(let k=0;k<N;k++){ drawFrame(x,base,W,H,k/N*Math.PI*2,snow); frames.push(x.getImageData(0,0,W,H).data); if(k%4===3) await new Promise(r=>setTimeout(r,0)); }
+  // palette from samples of a few frames
+  const samples=[]; [0,N/3|0,2*N/3|0].forEach(f=>{ const d=frames[f]; for(let i=0;i<d.length;i+=4*17) samples.push([d[i],d[i+1],d[i+2]]); });
+  samples.push([255,255,255],[247,236,221],[243,221,170],[214,174,104]);
+  let boxes=[samples];
+  while(boxes.length<256){ let bi=-1,best=-1,ch=0;
+    for(let i=0;i<boxes.length;i++){ const b=boxes[i]; if(b.length<2) continue; const mn=[255,255,255],mx=[0,0,0];
+      for(const p of b){ for(let q=0;q<3;q++){ if(p[q]<mn[q])mn[q]=p[q]; if(p[q]>mx[q])mx[q]=p[q]; } }
+      const rs=[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]], cc=rs.indexOf(Math.max(...rs)), sc=rs[cc]*Math.sqrt(b.length); if(sc>best){best=sc;bi=i;ch=cc;} }
+    if(bi<0||best<=0) break; const b=boxes[bi].sort((p,q)=>p[ch]-q[ch]), m=b.length>>1; boxes.splice(bi,1,b.slice(0,m),b.slice(m)); }
+  const pal=boxes.map(b=>{ const s=[0,0,0]; b.forEach(p=>{s[0]+=p[0];s[1]+=p[1];s[2]+=p[2]}); return s.map(v=>Math.round(v/b.length)); });
+  while(pal.length<256) pal.push([0,0,0]);
+  const lut=new Uint8Array(32768);
+  for(let k=0;k<32768;k++){ const r=((k>>10)<<3)+4, g=(((k>>5)&31)<<3)+4, b=((k&31)<<3)+4; let bd=1e9,bi=0;
+    for(let i=0;i<256;i++){ const p=pal[i], d=(p[0]-r)*(p[0]-r)*2+(p[1]-g)*(p[1]-g)*3+(p[2]-b)*(p[2]-b); if(d<bd){bd=d;bi=i;} } lut[k]=bi; }
+  await new Promise(r=>setTimeout(r,0));
+  // writer
+  let buf=new Uint8Array(1<<20), len=0;
+  const put=v=>{ if(len>=buf.length){ const nb=new Uint8Array(buf.length*2); nb.set(buf); buf=nb; } buf[len++]=v; };
+  const str=s=>{ for(const ch of s) put(ch.charCodeAt(0)); }, u16=v=>{ put(v&255); put(v>>8&255); };
+  str('GIF89a'); u16(W); u16(H); put(0xF7); put(0); put(0); pal.forEach(p=>{put(p[0]);put(p[1]);put(p[2]);});
+  put(0x21); put(0xFF); put(11); str('NETSCAPE2.0'); put(3); put(1); u16(0); put(0);
+  const idx=new Uint8Array(W*H);
+  for(let f=0;f<N;f++){
+    const d=frames[f]; for(let i=0,j=0;j<idx.length;i+=4,j++) idx[j]=lut[((d[i]>>3)<<10)|((d[i+1]>>3)<<5)|(d[i+2]>>3)];
+    put(0x21); put(0xF9); put(4); put(0x04); u16(DELAY); put(0); put(0);
+    put(0x2C); u16(0); u16(0); u16(W); u16(H); put(0); put(8);
+    // LZW
+    const out=[]; let cur=0,bits=0,size=9,next=258,dict=new Map();
+    const emit=code=>{ cur|=code<<bits; bits+=size; while(bits>=8){ out.push(cur&255); cur>>>=8; bits-=8; } };
+    emit(256); let prefix=idx[0];
+    for(let i=1;i<idx.length;i++){ const k=idx[i], key=prefix*256+k, v=dict.get(key);
+      if(v!==undefined){ prefix=v; continue; }
+      emit(prefix);
+      if(next===4096){ emit(256); dict=new Map(); size=9; next=258; }
+      else { if(next>=(1<<size)) size++; dict.set(key,next++); }
+      prefix=k; }
+    emit(prefix); emit(257); if(bits>0) out.push(cur&255);
+    for(let i=0;i<out.length;i+=255){ const n=Math.min(255,out.length-i); put(n); for(let j=0;j<n;j++) put(out[i+j]); }
+    put(0);
+    if(f%6===5) await new Promise(r=>setTimeout(r,0));
+  }
+  put(0x3B);
+  return new Blob([buf.slice(0,len)],{type:'image/gif'});
+}
+
+/* ---- live HTML card (opens in any browser, animated + snow) ---- */
+function makeLiveHTML(name,wishes,group,budget){
+  const data=JSON.stringify({name,wishes,group,budget}).replace(/</g,'\\u003c');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wish list · ${esc(name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>html,body{margin:0;min-height:100%;background:radial-gradient(90% 60% at 50% 18%,#3d1d12,#12070a 80%);display:grid;place-items:center}
+canvas{width:min(92vw,calc(92vh*1080/1512));height:auto;margin:4vh 0;box-shadow:0 40px 80px -20px rgba(0,0,0,.9);border-radius:3px}</style></head>
+<body><canvas id="c" width="1080" height="1512"></canvas>
+<script>
+const D=${data};
+${makeSparks.toString()}
+const SPARKS=makeSparks(1500);
+${drawTree.toString()}
+${cardStatic.toString()}
+${makeSnow.toString()}
+${drawFrame.toString()}
+(async()=>{ try{ await document.fonts.ready; }catch(e){}
+  const c=document.getElementById('c'), x=c.getContext('2d'), base=cardStatic(1080,1512,D.name,D.wishes,D.group,D.budget), snow=makeSnow(70);
+  (function f(ts){ drawFrame(x,base,1080,1512,(ts/1000*.45)%(Math.PI*2),snow); requestAnimationFrame(f); })(0);
+})();
+<\/script></body></html>`;
+}
+
+async function saveBlob(blob,filename){
+  const file=new File([blob],filename,{type:blob.type});
+  const touch=matchMedia('(pointer:coarse)').matches;
+  if(touch && navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:filename}); return true; }catch(e){ if(e.name==='AbortError') return false; }
+  }
+  const a=document.createElement('a'); a.download=filename; a.href=URL.createObjectURL(blob); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000); return true;
+}
+async function downloadCard(name,wishes){
+  const blob=await makeGif(name,wishes,state.group,state.budget);
+  const ok=await saveBlob(blob,`Wishlist-${name.replace(/\s+/g,'')}.gif`);
+  if(ok) toast('Your animated wish list is saved'); return ok;
+}
 
 /* =========================================================
    START — decide which page this link is
