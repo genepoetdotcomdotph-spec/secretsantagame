@@ -1,82 +1,77 @@
 # 🎄 Monito · Monita — Christmas Gift Draw
 
-Opens with a shooting star that spirals up into a glittering Christmas tree, then pops into the invitation card.
+**Live site:** https://genepoetdotcomdotph-spec.github.io/secretsantagame/
 
-A free gift-draw app that any family, barkada or office can use.
+A free Christmas gift-draw app that any family, barkada or office can use. No sign-up and no email needed.
 
-- A **host** opens the site, types a **group name** and a **gift budget**, and gets a **join link** to share and a private **manage link**.
-- People open the join link, pick a **secret name** and a **4-digit PIN**, and seal **3 wishes**.
-- The host taps **Lock sign-ups**. Everyone comes back, taps the gift, and sees who they got plus that person's wishes, which they can download as a picture.
-- Nobody can draw themselves, nobody gets the same person twice, and groups never see each other.
+## ✨ What it does
 
-## 📁 Files
+- 🌟 **Opening animation:** a shooting star spirals up into a glittering Christmas tree, pops at the top, and reveals the invitation card.
+- 🎅 **Host a group:** type a **group name** and **gift budget**. You get a **join link** to share and a private **manage link**.
+- 🤫 **Join secretly:** people open the join link, pick a **secret name** and a **4-digit PIN**, and seal **3 wishes**. Nobody sees who has joined.
+- 🔒 **Lock and draw:** the host locks sign-ups. Everyone taps the gift, the name roulette spins, and it lands on their person.
+- 🎞️ **Living wish card:** download the drawn person's wishes as an **animated GIF** (tree twinkles, snow falls) or a **live card (.html)**.
+- 📖 **Two-page card:** the cover swings open, the steps sit in the middle, and the card closes with "Merry Christmas" when you're done.
+- 🎵 **Extras:** Christmas music, blurry falling snow, a gold-sparkle effect on every tap, and layouts for both phones and computers.
+- ✅ **Fair and private:** nobody draws themselves, nobody gets the same person twice, and groups never see each other.
 
-| File | Goes to | What it is |
-|---|---|---|
-| `index.html` | GitHub | The whole website (host page, Christmas card, manage page) |
-| `README.md` | GitHub | This guide |
-| `Code.gs` | Google Apps Script | The back end that saves everything in a Google Sheet |
+## 🙋 How to use it
 
----
+**If you're the host**
+1. Open the live site, then type a group name and a budget.
+2. **Copy and save the manage link right away.** It's the only way back to managing your group.
+3. Share the **join link** in your group chat.
+4. Once everyone has joined, open the manage link and tap **Lock sign-ups & open the draw** (needs at least 3 people).
 
-## Step 1 · Google Sheet + Apps Script (about 5 minutes)
-
-1. Go to **sheets.new** to create a blank Google Sheet. Name it `Monito Monita`.
-2. In the Sheet, click **Extensions → Apps Script**.
-3. Delete everything in `Code.gs` there, then paste in the contents of this repo's `Code.gs`.
-4. *(Recommended)* Near the top, change `const SALT = 'mm-2026';` to any random text, for example `'nicer-family-8841'`.
-5. Click **💾 Save**.
-6. In the function dropdown at the top, choose **setup**, then click **▶ Run**.
-   - Google will ask for permission: **Review permissions → choose your account → Advanced → Go to project (unsafe) → Allow**.
-   - Back in the Sheet, you'll now see 3 tabs: **Groups**, **Members** and **Pairs**.
-7. Click **Deploy → New deployment**.
-   - Click the ⚙️ gear → **Web app**
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-   - Click **Deploy**, then **copy the Web app URL** (it ends in `/exec`).
-
-## Step 2 · Connect the website to the Sheet
-
-1. Open `index.html` and find this line near the top of the `<script>` section:
-   ```js
-   const API_URL = '';
-   ```
-2. Paste your `/exec` link between the quotes:
-   ```js
-   const API_URL = 'https://script.google.com/macros/s/AKfy.../exec';
-   ```
-3. Save.
-
-> Leaving `API_URL` empty keeps the site in **test mode**: it saves only in your own browser, and a "test members" button appears on the manage page.
-
-## Step 3 · Put it on GitHub Pages
-
-1. Create a new repository, for example `monito`, with **Add README** turned **ON**.
-2. Upload `index.html` and `README.md` (just the files, no folders). The music is already built into `index.html`.
-3. Go to **Settings → Pages**: Source **Deploy from a branch**, Branch **main**, Folder **/ (root)**, then **Save**.
-4. If the account isn't **tenrenti01**, go to **Settings → Collaborators** and add **tenrenti01**.
-5. Wait about 1 minute. Your site will be at:
-   ```
-   https://YOUR-USERNAME.github.io/monito/
-   ```
+**If you're joining**
+1. Open the join link and tap the card.
+2. Choose a secret name and a 4-digit PIN, then seal your 3 wishes.
+3. When the host locks sign-ups, come back, sign in with your secret name and PIN, and tap the gift.
+4. Download your person's animated wish list, and keep it a secret!
 
 ## 🔗 What the links look like
 
 | Link | Example | Who uses it |
 |---|---|---|
-| Host page | `https://YOUR-USERNAME.github.io/monito/` | Anyone who wants to create a group |
-| Join link | `…/monito/?g=BURF-VHF5` | Shared in the group chat |
-| Manage link | `…/monito/?g=BURF-VHF5&host=f4j7x…` | Host only. Keep it private! |
+| Host page | `…/secretsantagame/` | Anyone who wants to create a group |
+| Join link | `…/secretsantagame/?g=BURF-VHF5` | Shared in the group chat |
+| Manage link | `…/secretsantagame/?g=BURF-VHF5&host=f4j7x…` | Host only. Keep it private! |
 
-## 🛠️ Updating the back end later
+## 📁 Files
 
-If you change `Code.gs`, go to **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**.
-This keeps the same `/exec` link, so you don't need to touch `index.html`.
+| File | Where it lives | What it is |
+|---|---|---|
+| `index.html` | This repo (GitHub Pages) | The whole website, with the music built in |
+| `Code.gs` | Google Apps Script (copy kept here) | The back end that saves everything in a Google Sheet |
+| `README.md` | This repo | This guide |
+
+---
+
+## 🛠️ Setting it up again (for a new copy)
+
+**Step 1 · Google Sheet and Apps Script (about 5 minutes)**
+1. Go to **sheets.new**, then **Extensions → Apps Script**.
+2. Replace everything in `Code.gs` with this repo's `Code.gs`. *(Recommended)* change `const SALT = 'mm-2026';` to any random text.
+3. Choose **setup** in the function dropdown, then click **▶ Run** and allow the permissions. This creates the tabs **Groups**, **Members** and **Pairs**.
+4. Go to **Deploy → New deployment → Web app**: *Execute as* **Me**, *Who has access* **Anyone**, then **Deploy**. Copy the link that ends in `/exec`.
+
+You never run `doGet` or `doPost` yourself. The website calls them automatically.
+
+**Step 2 · Connect the website**
+In `index.html`, paste your `/exec` link into `const API_URL = '';`.
+Leaving it empty keeps the site in **test mode**: data stays in one browser, and an "Add 4 test members" button appears on the manage page.
+
+**Step 3 · GitHub Pages**
+Upload `index.html` and `README.md` (flat files, no folders). Then go to **Settings → Pages → Deploy from a branch → main → / (root) → Save**.
+
+**Updating the back end later:** go to **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The `/exec` link stays the same.
 
 ## ❓ Common questions
 
-- **Someone forgot their PIN:** the host opens the manage link, taps the 🔑 key next to their name, and types a new PIN.
-- **Someone joined twice by mistake:** before locking, the host taps ✕ next to the extra name.
+- **The host lost the manage link:** it can't be recovered from the site. Find the group code in the **Groups** tab of the Google Sheet, then build the link as `…/?g=CODE&host=HOSTKEY` from that row.
+- **Someone forgot their PIN:** the host opens the manage link, taps the 🔑 key next to their name, and sets a new PIN.
+- **Someone joined twice:** before locking, the host taps ✕ next to the extra name.
 - **Something went wrong after locking:** the host taps **Reset the draw**. All picks are cleared and sign-ups reopen.
-- **No music?** Browsers only allow sound after the first tap, so a small *“Tap for music”* hint appears at the top right until someone taps. The gold button there turns music on or off. Also check that the phone isn’t on silent.
-- **Where's the data?** All in your Google Sheet. PINs are scrambled (hashed), so even you can't read them.
+- **No music?** Browsers allow sound only after the first tap, so a *"Tap for music"* hint shows at the top right. Also check that the phone isn't on silent.
+- **Saving the wish list on a phone:** tap **Download animated card**, then choose **Save Image** in the share sheet.
+- **Where's the data?** In the Google Sheet. PINs are scrambled (hashed) and can't be read.
