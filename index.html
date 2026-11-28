@@ -610,13 +610,15 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-copy]'); 
 /* =========================================================
    MUSIC
    ========================================================= */
-const audio=$('#audio'), mBtn=$('#music'); let wantMusic=localStorage.getItem('mm_music')!=='off', fadeT;
+const audio=$('#audio'), mBtn=$('#music'); let wantMusic=sessionStorage.getItem('mm_music')!=='off', fadeT;
 function setMusicUI(on){ mBtn.classList.toggle('off',!on); if(on) mBtn.classList.remove('ask'); mBtn.setAttribute('aria-label',on?'Pause music':'Play music'); }
-function playMusic(){ if(!wantMusic) return; audio.volume=0; const p=audio.play(); if(p) p.then(()=>{ setMusicUI(true); clearInterval(fadeT); fadeT=setInterval(()=>{ audio.volume=Math.min(.55,audio.volume+.03); if(audio.volume>=.55) clearInterval(fadeT); },80); }).catch(()=>{ if(wantMusic) mBtn.classList.add('ask'); }); }
+let starting=false; try{ localStorage.removeItem('mm_music'); }catch(e){}
+function playMusic(){ if(!wantMusic||starting||!audio.paused) return; starting=true; audio.volume=0; const p=audio.play(); if(p) p.then(()=>{ starting=false; setMusicUI(true); clearInterval(fadeT); fadeT=setInterval(()=>{ audio.volume=Math.min(.55,audio.volume+.03); if(audio.volume>=.55) clearInterval(fadeT); },80); }).catch(()=>{ starting=false; if(wantMusic) mBtn.classList.add('ask'); }); else starting=false; }
 function stopMusic(){ clearInterval(fadeT); fadeT=setInterval(()=>{ audio.volume=Math.max(0,audio.volume-.05); if(audio.volume<=0){ clearInterval(fadeT); audio.pause(); } },60); setMusicUI(false); }
-mBtn.onclick=e=>{ e.stopPropagation(); if(audio.paused){ wantMusic=true; localStorage.setItem('mm_music','on'); playMusic(); } else { wantMusic=false; localStorage.setItem('mm_music','off'); stopMusic(); } };
+mBtn.onclick=e=>{ e.stopPropagation(); if(audio.paused){ wantMusic=true; sessionStorage.setItem('mm_music','on'); playMusic(); } else { wantMusic=false; sessionStorage.setItem('mm_music','off'); stopMusic(); } };
 playMusic();   // browsers may block this until the first tap…
-['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{ if(audio.paused&&wantMusic) playMusic(); },{once:true}));
+// start music on ANY tap/click/key, on phones and computers; keeps trying until it plays
+['pointerup','touchend','click','keydown'].forEach(ev=>addEventListener(ev,e=>{ if(e.target&&e.target.closest&&e.target.closest('#music')) return; if(audio.paused&&wantMusic) playMusic(); },{capture:true,passive:true}));
 
 /* =========================================================
    TAP / CLICK EFFECT (everywhere)
