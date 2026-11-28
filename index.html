@@ -387,11 +387,9 @@
     <!-- JOIN -->
     <section class="screen" id="s-join">
       <h2 class="rv">Join the draw</h2>
-      <p class="lead rv">Choose a secret name and a 4-digit PIN. You’ll use both to come back and draw.</p>
+      <p class="lead rv">Choose a secret name only you will know. You’ll use it to come back and draw.</p>
       <label class="rv" for="jName">Your secret name</label>
       <div class="line rv"><input type="text" id="jName" placeholder="Your name or nickname" autocomplete="off" autocapitalize="words" maxlength="30"></div>
-      <label class="rv">Your 4-digit PIN</label>
-      <div class="pin rv" id="jPin"></div>
       <p class="hint rv">Remember it — you’ll need it to draw.</p>
       <button class="btn rv" id="btnJoin"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Continue</button>
       <p class="link rv">Already joined? <a id="toLogin">Sign in</a></p>
@@ -400,14 +398,12 @@
     <!-- SIGN IN -->
     <section class="screen" id="s-login">
       <h2 class="rv">Welcome back</h2>
-      <p class="lead rv" id="loginLead">Type your secret name and PIN.</p>
+      <p class="lead rv" id="loginLead">Type your secret name.</p>
       <label class="rv" for="lName">Your secret name</label>
       <div class="line rv"><input type="text" id="lName" placeholder="Your secret name" autocomplete="off" autocapitalize="words" maxlength="30"></div>
-      <label class="rv">Your PIN</label>
-      <div class="pin rv" id="lPin"></div>
       <button class="btn rv" id="btnLogin"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>Sign in</button>
       <p class="link rv" id="toJoinWrap">New here? <a id="toJoin">Join the draw</a></p>
-      <p class="hint rv">Forgot your PIN? Ask your host to reset it.</p>
+      <p class="hint rv">Type it exactly the way you joined (capital letters don’t matter).</p>
     </section>
 
     <!-- WISHES -->
@@ -786,7 +782,8 @@ function playIntro(){
    ========================================================= */
 const book=$('#book'), sheet=$('#sheet');
 const state={group:'',token:null,name:null,wishes:null,drew:null,drewWishes:null,locked:false,budget:0,roster:[],joined:0,left:0};
-let jPin,lPin;
+const NOPIN='0000';
+const plain=m=>String(m||'Something went wrong').replace('That secret name and PIN don’t match','We can’t find that secret name in this group').replace(' or ask your host to reset your PIN','');   // PINs are switched off: everyone uses the same hidden PIN, the secret name is the key
 function setCover(mode){
   const b=peso(state.budget||0);
   $$('.budgetTxt').forEach(e=>e.textContent=b);
@@ -818,7 +815,7 @@ function applySession(r){
   const h=(r.wishes||[]).map((w,i)=>`<li>${ROMAN[i]}. ${esc(w)}</li>`).join(''); $$('.myW').forEach(o=>o.innerHTML=h);
 }
 function routeInside(){
-  $('#toJoinWrap').hidden=state.locked; $('#loginLead').textContent=state.locked?'Sign-ups are closed. Type your secret name and PIN to draw.':'Type your secret name and PIN.';
+  $('#toJoinWrap').hidden=state.locked; $('#loginLead').textContent=state.locked?'Sign-ups are closed. Type your secret name to draw.':'Type your secret name.';
   if(!state.token) return show(state.locked?'s-login':'s-join');
   if(!state.wishes) return show('s-wish');
   if(state.drew) return showResult();
@@ -827,17 +824,16 @@ function routeInside(){
   show('s-draw');
 }
 $('#toLogin').onclick=()=>show('s-login'); $('#toJoin').onclick=()=>show('s-join');
-$('#signOut').onclick=()=>{ localStorage.removeItem(tokKey()); Object.assign(state,{token:null,name:null,wishes:null,drew:null,drewWishes:null}); jPin.clear(); lPin.clear(); $('#jName').value=''; $('#lName').value=''; routeInside(); };
+$('#signOut').onclick=()=>{ localStorage.removeItem(tokKey()); Object.assign(state,{token:null,name:null,wishes:null,drew:null,drewWishes:null}); $('#jName').value=''; $('#lName').value=''; routeInside(); };
 
-$('#btnJoin').onclick=async e=>{ const B=e.currentTarget, name=$('#jName').value.trim(), pin=jPin.get();
+$('#btnJoin').onclick=async e=>{ const B=e.currentTarget, name=$('#jName').value.trim(), pin=NOPIN;
   if(name.length<2) return toast('Please type a secret name (at least 2 letters)');
-  if(pin.length<4) return toast('Please choose a 4-digit PIN');
   busy(B,true); const r=await api('join',{g:G,name,pin}); busy(B,false);
-  if(!r.ok) return toast(r.error); applySession(r); toast('Welcome, '+r.name+' — remember your PIN'); routeInside(); };
-$('#btnLogin').onclick=async e=>{ const B=e.currentTarget, name=$('#lName').value.trim(), pin=lPin.get();
-  if(!name) return toast('Please type your secret name'); if(pin.length<4) return toast('Please type your 4-digit PIN');
+  if(!r.ok) return toast(r.error); applySession(r); toast('Welcome, '+r.name+' — remember your secret name'); routeInside(); };
+$('#btnLogin').onclick=async e=>{ const B=e.currentTarget, name=$('#lName').value.trim(), pin=NOPIN;
+  if(!name) return toast('Please type your secret name');
   busy(B,true); const r=await api('login',{g:G,name,pin}); busy(B,false);
-  if(!r.ok) return toast(r.error); applySession(r); routeInside(); };
+  if(!r.ok) return toast(plain(r.error)); applySession(r); routeInside(); };
 $('#btnWish').onclick=async e=>{ const B=e.currentTarget, w=$$('#wishes input').map(i=>i.value.trim());
   if(w.some(x=>!x)) return toast('Please fill in all three wishes');
   if(!confirm('Seal these three wishes? You can’t change them later.')) return;
@@ -895,7 +891,6 @@ function renderManage(r){
   $('#mStatus').classList.toggle('locked',r.locked); $('#mStatus').querySelector('span').textContent=r.locked?'Locked · draw is open':'Open for sign-ups';
   $('#mList').innerHTML=r.members.length?r.members.map(m=>`<li><span class="mono">${esc(initials(m.name))}</span><span class="nm">${esc(m.name)}</span>
       <span class="tag">${r.locked?(m.drew?'drawn':'not yet'):(m.ready?'wishes sealed':'writing…')}</span>
-      <button class="ic" title="Reset PIN" data-pin="${esc(m.name)}"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg></button>
       ${r.locked?'':`<button class="ic x" title="Remove" data-rm="${esc(m.name)}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`}</li>`).join('')
     :`<li class="empty">Nobody has joined yet. Share the join link!</li>`;
   const ready=r.members.filter(m=>m.ready).length;
@@ -912,7 +907,7 @@ $('#btnLock').onclick=async e=>{ const B=e.currentTarget; if(!confirm('Lock sign
   renderManage(r); const br=B.getBoundingClientRect(); fx.burst(innerWidth/2,br.top,100); toast('Locked! Everyone can now draw a name'); };
 $('#btnReset').onclick=async e=>{ if(!confirm('Reset the draw? All picks are cleared and sign-ups open again. Use this only if something went wrong.')) return;
   const r=await api('resetDraw',{g:G,key:HOSTKEY}); if(!r.ok) return toast(r.error); renderManage(r); toast('Draw reset — sign-ups are open again'); };
-$('#btnDemo').onclick=async()=>{ const r=await api('demoMembers',{g:G,key:HOSTKEY}); if(!r.ok) return toast(r.error); renderManage(r); toast('Added test members (their PIN is 0000)'); };
+$('#btnDemo').onclick=async()=>{ const r=await api('demoMembers',{g:G,key:HOSTKEY}); if(!r.ok) return toast(r.error); renderManage(r); toast('Added test members'); };
 setInterval(()=>{ if($('#s-manage').classList.contains('active')) refreshManage(); },15000);
 
 function showError(msg){ if(msg) $('#errText').textContent=msg; book.hidden=true; sheet.classList.add('on'); show('s-error'); }
@@ -1050,7 +1045,7 @@ async function downloadCard(name,wishes){
    START — decide which page this link is
    ========================================================= */
 (async function init(){
-  jPin=pinBoxes('#jPin'); lPin=pinBoxes('#lPin');
+  [$('#jName'),$('#lName')].forEach((i,k)=>i.onkeydown=e=>{ if(e.key==='Enter') (k?$('#btnLogin'):$('#btnJoin')).click(); });
   const wide=()=>innerWidth>=760;
   treeLoop($('#treeF'),(W,H)=>({cx:W*.25,top:H*.2,h:H*.66,R:W*.23}),()=>!book.hidden&&!book.classList.contains('open'));
   treeLoop($('#treeB'),(W,H)=>({cx:W*.22,top:H*.2,h:H*.66,R:W*.17}),()=>!book.hidden&&book.classList.contains('open')&&wide());
